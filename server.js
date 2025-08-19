@@ -1,3 +1,4 @@
+
 const express = require("express");
 const bodyparser = require('body-parser');
 const path = require('path');
@@ -7,6 +8,12 @@ const libre = require('libreoffice-convert');
 
 const app = express();
 
+// ✅ Ensure uploads folder exists (important for Render)
+const uploadDir = path.join(__dirname, "uploads");
+if (!fs.existsSync(uploadDir)) {
+    fs.mkdirSync(uploadDir);
+}
+
 // Middleware
 app.use(express.static('uploads')); 
 app.use(bodyparser.urlencoded({ extended: false }));
@@ -15,10 +22,10 @@ app.use(bodyparser.json());
 // Multer storage configuration
 let storage = multer.diskStorage({
     destination: function (req, file, cb) {
-        cb(null, "uploads");
+        cb(null, uploadDir); // save files in uploads/
     },
     filename: function (req, file, cb) {
-        cb(null, Date.now() + path.extname(file.originalname));
+        cb(null, Date.now() + path.extname(file.originalname)); // unique filename
     },
 });
 
@@ -26,14 +33,14 @@ let upload = multer({ storage: storage });
 
 // Serve frontend
 app.get('/', (req, res) => {
-    res.sendFile(__dirname + "/index.html");
+    res.sendFile(path.join(__dirname, "index.html"));
 });
 
 // DOCX → PDF conversion route
 app.post('/docxtopdf', upload.single('file'), (req, res) => {
     const filePath = req.file.path;
     const outputFileName = Date.now() + "_output.pdf";
-    const outputPath = path.join("uploads", outputFileName);
+    const outputPath = path.join(uploadDir, outputFileName);
 
     const fileBuffer = fs.readFileSync(filePath);
 
@@ -60,7 +67,7 @@ app.post('/docxtopdf', upload.single('file'), (req, res) => {
 });
 
 // Start server
-const PORT = process.env.PORT || 3000;  // use Render’s PORT, fallback 3000 for local dev
+const PORT = process.env.PORT || 3000;  // Render’s PORT or local fallback
 app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+    console.log(`Server running on port ${PORT}`);
 });
