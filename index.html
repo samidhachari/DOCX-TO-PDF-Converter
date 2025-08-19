@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DOCX TO PDF Converter</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 text-gray-900 font-sans">
+
+  <!-- Navbar -->
+  <header class="bg-white shadow-md">
+    <div class="max-w-6xl mx-auto flex justify-between items-center px-6 py-4">
+      <h1 class="text-2xl font-bold text-blue-600">DOCX TO PDF Converter</h1>
+      <nav>
+        <ul class="flex space-x-6">
+          <li><a href="#" class="hover:text-blue-600">Home</a></li>
+          <li><a href="#" class="hover:text-blue-600">Upload</a></li>
+          <li><a href="#" class="hover:text-blue-600">About</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="max-w-4xl mx-auto mt-10 px-6">
+    <div class="bg-white shadow-lg rounded-2xl p-8">
+      <h2 class="text-xl font-semibold mb-4">Upload Your File</h2>
+      <form id="uploadForm" enctype="multipart/form-data" class="space-y-4">
+        <input 
+          type="file"
+          name="file"
+          id="fileInput"
+          class="block w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-blue-500"
+        >
+        <button
+          type="submit"
+          class="bg-blue-600 text-white px-6 py-2 rounded-lg shadow hover:bg-blue-700 transition"
+        >
+          Upload
+        </button>
+      </form>
+      <div id="result" class="mt-6 text-gray-700">
+        <p id="resultMessage">No file uploaded yet.</p>
+        <iframe id="pdfPreview" class="hidden w-full h-96 border rounded-lg mt-4" frameborder="0"></iframe>
+      </div>
+    </div>
+  </main>
+
+  <!-- Script -->
+  <script>
+    document.getElementById("uploadForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      const fileInput = document.getElementById("fileInput");
+      if (!fileInput.files.length) {
+        alert("Please select a file first");
+        return;
+      }
+
+      const formData = new FormData();
+      formData.append("file", fileInput.files[0]);
+
+      const res = await fetch("/docxtopdf", {
+        method: "POST",
+        body: formData
+      });
+
+      if (res.ok) {
+        const blob = await res.blob();
+        const url = URL.createObjectURL(blob); 
+        document.getElementById("resultMessage").innerText = "File converted successfully!";
+        const pdfFrame = document.getElementById("pdfPreview");
+        pdfFrame.src = url;
+        pdfFrame.classList.remove("hidden");
+      } else {
+        document.getElementById("resultMessage").innerText = "Conversion failed!";
+      }
+    });
+  </script>
+
+  <!-- Footer -->
+  <footer class="mt-10 py-6 text-center text-gray-500 text-sm">
+    © 2025 Task 1. Built using Node.js & Express.
+  </footer>
+
+</body>
+</html>
+
+
