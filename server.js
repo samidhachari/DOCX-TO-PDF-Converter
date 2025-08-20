@@ -74,6 +74,8 @@
 
 
 
+
+
 const express = require("express");
 const bodyparser = require('body-parser');
 const path = require('path');
@@ -81,6 +83,9 @@ const multer = require('multer');
 const fs = require('fs');
 const axios = require('axios'); // HTTP requests
 const FormData = require('form-data');
+require('dotenv').config();
+
+const apiKey = process.env.NUTRIENT_API_KEY;
 
 const app = express();
 
@@ -89,15 +94,22 @@ app.use(express.static('uploads'));
 app.use(bodyparser.urlencoded({ extended: false }));
 app.use(bodyparser.json());
 
+const uploadDir = path.join(__dirname, 'uploads');
+if (!fs.existsSync(uploadDir)) {
+    fs.mkdirSync(uploadDir);
+}
+
 // Multer storage configuration
 let storage = multer.diskStorage({
     destination: function (req, file, cb) {
-        cb(null, "uploads");
+
+        cb(null, uploadDir);
     },
     filename: function (req, file, cb) {
         cb(null, Date.now() + path.extname(file.originalname));
     },
 });
+
 let upload = multer({ storage: storage });
 
 // Serve frontend
@@ -108,6 +120,12 @@ app.get('/', (req, res) => {
 // DOCX → PDF conversion using Nutrient API
 app.post('/docxtopdf', upload.single('file'), async (req, res) => {
     try {
+
+         // Check if a file was uploaded
+        if (!req.file) {
+            return res.status(400).send("No file uploaded");
+        }
+
         const filePath = req.file.path;
 
         // Prepare form data
@@ -122,7 +140,8 @@ app.post('/docxtopdf', upload.single('file'), async (req, res) => {
             {
                 headers: {
                     ...formData.getHeaders(),
-                    'Authorization': 'Bearer pdf_live_O5r6IKTyL8aQBxYBhIcELlWH5ErbiRAzjyxuxmm2Jzp'
+                    // 'Authorization': 'Bearer pdf_live_O5r6IKTyL8aQBxYBhIcELlWH5ErbiRAzjyxuxmm2Jzp'
+                    'Authorization': `Bearer ${process.env.NUTRIENT_API_KEY}`
                 },
                 responseType: 'stream'
             }
@@ -160,4 +179,7 @@ const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
 });
+
+
+
 
