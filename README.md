@@ -1,4 +1,4 @@
-DOCX to PDF Converter
+📄 DOCX to PDF Converter
 
 A simple web-based file converter that allows users to upload a `.docx` file from the frontend, sends it to a Node.js + Express backend, and receives the converted `.pdf` file for download.
 
@@ -15,3 +15,4 @@ Project Flow
 3. Backend receives file using `multer` (for file upload).
 4. File content is extracted → converted to PDF.
 5. Converted `.pdf` file is sent back as a download response.
+
